@@ -1,4 +1,5 @@
 import 'dart:ui' as ui show TextHeightBehavior;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -19,8 +20,6 @@ class TranslatedText extends StatefulWidget {
   final String? semanticsLabel;
   final TextWidthBasis? textWidthBasis;
   final ui.TextHeightBehavior? textHeightBehavior;
-
-
 
   /// it has the same constructor as widget Text()
   TranslatedText(
@@ -72,21 +71,21 @@ class _TranslatedTextState extends State<TranslatedText> {
   final TextWidthBasis? textWidthBasis;
   final ui.TextHeightBehavior? textHeightBehavior;
 
-  _TranslatedTextState(
-      {required this.text,
-      this.style,
-      this.strutStyle,
-      this.textAlign,
-      this.textDirection,
-      this.locale,
-      this.softWrap,
-      this.overflow,
-      this.textScaleFactor,
-      this.maxLines,
-      this.semanticsLabel,
-      this.textWidthBasis,
-      this.textHeightBehavior,
-      });
+  _TranslatedTextState({
+    required this.text,
+    this.style,
+    this.strutStyle,
+    this.textAlign,
+    this.textDirection,
+    this.locale,
+    this.softWrap,
+    this.overflow,
+    this.textScaleFactor,
+    this.maxLines,
+    this.semanticsLabel,
+    this.textWidthBasis,
+    this.textHeightBehavior,
+  });
 
   /// the translate method, it will return the translated text
   Future<String> translate() async {
@@ -114,6 +113,16 @@ class _TranslatedTextState extends State<TranslatedText> {
             duration: const Duration(milliseconds: 250),
             switchInCurve: Curves.ease,
             switchOutCurve: Curves.ease,
+            layoutBuilder: (currentChild, previousChildren) {
+              return Stack(
+                fit: StackFit.loose,
+                alignment: AlignmentDirectional.topStart,
+                children: <Widget>[
+                  ...previousChildren,
+                  if (currentChild != null) currentChild
+                ],
+              );
+            },
             transitionBuilder: (Widget child, Animation<double> animation) {
               return FadeTransition(child: child, opacity: animation);
             },
@@ -133,7 +142,8 @@ class _TranslatedTextState extends State<TranslatedText> {
       locale: locale,
       softWrap: softWrap,
       overflow: overflow,
-      textScaleFactor: textScaleFactor,
+      textScaler:
+          textScaleFactor != null ? TextScaler.linear(textScaleFactor!) : null,
       maxLines: maxLines,
       semanticsLabel: semanticsLabel,
       textWidthBasis: textWidthBasis,

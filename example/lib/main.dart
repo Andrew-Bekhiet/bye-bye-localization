@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:bye_bye_localization/bye_bye_localization.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
 
 void main() => runApp(PdfExtractionMain());
 
@@ -24,23 +24,21 @@ class _PdfExtractionState extends State<PdfExtraction> {
   static final String _startingText =
       "A simple Text Widget, that can translate any text to any language using instant on device translation AI model, all you have to do is to provide the text and the widget will translate automatically, as a result you don't have to specify and localization files and type translation manually the widget will do it for you.";
   String _text = _startingText;
-  Map<String, String>? originLanguage = {'ENGLISH': "en"};
-  Map<String, String>? translateTo;
+  TranslateLanguage? originLanguage = TranslateLanguage.english;
+  TranslateLanguage? translateTo;
   bool _translate = true;
   bool textDirection = false;
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title:  TranslatedText(
+          title: TranslatedText(
             'Bye Bye Localization',
             style: TextStyle(fontSize: 24),
           ),
         ),
-        body:
-        FutureBuilder(
+        body: FutureBuilder(
           // Initialize FlutterFire:
           future: initTranslation(),
           builder: (context, snapshot) {
@@ -64,7 +62,7 @@ class _PdfExtractionState extends State<PdfExtraction> {
                     child: RichText(
                       text: TextSpan(
                         text:
-                            'Translating  from ${originLanguage!.keys.first} to ${translateTo == null ? Localizations.localeOf(context).languageCode : translateTo!.keys.first} \n',
+                            'Translating  from ${originLanguage!.bcpCode} to ${translateTo == null ? Localizations.localeOf(context).languageCode : translateTo!.bcpCode} \n',
                         style: TextStyle(fontSize: 30, color: Colors.black),
                         children: const <TextSpan>[
                           TextSpan(
@@ -93,8 +91,7 @@ class _PdfExtractionState extends State<PdfExtraction> {
               ),
             );
           },
-        )
-    );
+        ));
   }
 
   TextEditingController _controller = new TextEditingController();
@@ -121,12 +118,14 @@ class _PdfExtractionState extends State<PdfExtraction> {
               style: TextStyle(color: Colors.black),
             ),
             subtitle: translateTo != null
-                ? Text('${translateTo!.keys.first}')
+                ? Text('${translateTo!.bcpCode}')
                 : Text('current local is -->'
-                    '${LanguageHelper.languages.firstWhere(
+                    '${TranslateLanguage.values.firstWhere(
                           (k) =>
-                              k.values.first == ui.window.locale.languageCode,
-                        ).keys.first}'),
+                              k.bcpCode ==
+                              ui.PlatformDispatcher.instance.locale
+                                  .languageCode,
+                        ).bcpCode}'),
           ),
           Divider(),
           Padding(
@@ -215,24 +214,26 @@ class _PdfExtractionState extends State<PdfExtraction> {
   }
 
   Future<bool> initTranslation() async {
-    Locale myLocale = Localizations.localeOf(context);
-    print('myLocale.languageCode ${ui.window.locale.languageCode}');
+    print(
+        'myLocale.languageCode ${ui.PlatformDispatcher.instance.locale.languageCode}');
     return await TranslationManager().init(
-        translateToLanguage: translateTo == null
-            ? ui.window.locale.languageCode
-            : translateTo!.values.first,
-        originLanguage: originLanguage!.values.first);
+      translateToLanguage: translateTo == null
+          ? BCP47Code.fromRawValue(
+              ui.PlatformDispatcher.instance.locale.languageCode)
+          : translateTo!,
+      originLanguage: originLanguage!,
+    );
   }
 
   Future<bool> initWidget() async {
     return await TranslationManager().init(
-      originLanguage: Languages.ENGLISH,
-      translateToLanguage: Languages.ARABIC,
+      originLanguage: TranslateLanguage.english,
+      translateToLanguage: TranslateLanguage.arabic,
     );
   }
 
-  Future<Map<String, String>?> buildModelSheet() async {
-    return await showModalBottomSheet<Map<String, String>>(
+  Future<TranslateLanguage?> buildModelSheet() async {
+    return await showModalBottomSheet<TranslateLanguage>(
       enableDrag: true,
       context: context,
       builder: (BuildContext context) {
@@ -241,16 +242,16 @@ class _PdfExtractionState extends State<PdfExtraction> {
           color: Colors.amberAccent,
           child: Center(
             child: ListView.builder(
-              itemCount: LanguageHelper.languages.length,
+              itemCount: TranslateLanguage.values.length,
               itemBuilder: (BuildContext context, int index) {
                 return Column(
                   children: [
                     ListTile(
                       onTap: () {
-                        Navigator.pop(context, LanguageHelper.languages[index]);
+                        Navigator.pop(context, TranslateLanguage.values[index]);
                       },
                       title: Text(
-                        '${LanguageHelper.languages[index].keys.first}',
+                        '${TranslateLanguage.values[index].bcpCode}',
                         style: TextStyle(fontSize: 16),
                       ),
                     ),
